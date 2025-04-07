@@ -20,7 +20,12 @@ dependencies = [
     "kash-media>=0.3.8",
     # Search tools:
     "exa-py>=1.11.0",
-    "firecrawl-py>=1.15.0"
+    "firecrawl-py>=1.15.0",
+    "llama-index-core>=0.12.28",
+    "llama-index-llms-openai>=0.3.30",
+    "llama-index-embeddings-openai>=0.3.1",
+    "chromadb>=0.6.3",
+    "llama-index-vector-stores-chroma>=0.4.1",
 ]
 
 [dependency-groups]
