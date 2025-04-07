@@ -18,6 +18,9 @@ dynamic = ["version"]
 dependencies = [
     # Main kash and media deps:
     "kash-media>=0.3.8",
+    # Search tools:
+    "exa-py>=1.11.0",
+    "firecrawl-py>=1.15.0"
 ]
 
 [dependency-groups]

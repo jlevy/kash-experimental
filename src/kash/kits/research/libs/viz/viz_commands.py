@@ -1,0 +1,25 @@
+from kash.exec import kash_command
+from kash.model import ItemType
+
+
+@kash_command
+def graph_view(
+    docs_only: bool = False, concepts_only: bool = False, resources_only: bool = False
+) -> None:
+    """
+    Open a graph view of the current workspace.
+
+    :param concepts_only: Show only concepts.
+    :param resources_only: Show only resources.
+    """
+    from kash.kits.research.libs.viz.graph_view import assemble_workspace_graph, open_graph_view
+
+    if docs_only:
+        item_filter = lambda item: item.type == ItemType.doc
+    elif concepts_only:
+        item_filter = lambda item: item.type == ItemType.concept
+    elif resources_only:
+        item_filter = lambda item: item.type == ItemType.resource
+    else:
+        item_filter = None
+    open_graph_view(assemble_workspace_graph(item_filter))
