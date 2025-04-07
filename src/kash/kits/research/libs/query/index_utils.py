@@ -3,10 +3,6 @@ from functools import partial
 from types import NoneType
 from typing import Any
 
-from kash.config.logger import get_logger
-
-log = get_logger(__name__)
-
 
 def flatten_dict(d: dict[str, Any], parent_key: str = "", sep: str = ".") -> dict[str, str]:
     """

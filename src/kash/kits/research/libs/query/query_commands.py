@@ -2,12 +2,18 @@ from typing import cast
 
 from frontmatter_format import to_yaml_string
 from llama_index.core.schema import NodeWithScore
-from prettyfmt import fmt_lines
+from prettyfmt import fmt_lines, slugify_snake
 
 from kash.exec import assemble_store_path_args, kash_command
-from kash.kits.research.libs.query.vector_index import get_vector_index
+from kash.file_storage.file_store import FileStore
+from kash.kits.research.libs.query.vector_indexes import WsVectorIndex, get_ws_vector_index
 from kash.shell.output.shell_output import PrintHooks, Wrap, cprint, print_response, print_status
 from kash.workspaces import current_ws
+
+
+# For now using one collection per workspace.
+def get_collection_name(ws: FileStore) -> str:
+    return f"workspace_{slugify_snake(ws.name)}"
 
 
 @kash_command
@@ -18,8 +24,8 @@ def index(*paths: str) -> None:
     store_paths = assemble_store_path_args(*paths)
     ws = current_ws()
 
-    vector_index = get_vector_index(ws)
-    vector_index.index_items([ws.load(store_path) for store_path in store_paths])
+    ws_index: WsVectorIndex = get_ws_vector_index(ws, get_collection_name(ws))
+    ws_index.index_items([ws.load(store_path) for store_path in store_paths])
 
     print_status(f"Indexed:\n{fmt_lines(store_paths)}")
 
@@ -32,7 +38,8 @@ def unindex(*paths: str) -> None:
     store_paths = assemble_store_path_args(*paths)
     ws = current_ws()
 
-    vector_index = get_vector_index(ws)
+    collection_name = f"workspace_{ws.name}"
+    vector_index = get_ws_vector_index(ws, collection_name)
     vector_index.unindex_items([ws.load(store_path) for store_path in store_paths])
 
     print_status(f"Unindexed:\n{fmt_lines(store_paths)}")
@@ -59,7 +66,7 @@ def retrieve(query_str: str) -> None:
     Retrieve matches from the index for the given string or query.
     """
     ws = current_ws()
-    vector_index = get_vector_index(ws)
+    vector_index = get_ws_vector_index(ws, get_collection_name(ws))
     results = vector_index.retrieve(query_str)
 
     PrintHooks.spacer()
@@ -76,7 +83,7 @@ def query(query_str: str) -> None:
     from llama_index.core.base.response.schema import Response
 
     ws = current_ws()
-    vector_index = get_vector_index(ws)
+    vector_index = get_ws_vector_index(ws, get_collection_name(ws))
     results = cast(Response, vector_index.query(query_str))
 
     PrintHooks.spacer()
