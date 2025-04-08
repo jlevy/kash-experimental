@@ -27,10 +27,17 @@ dependencies = [
     "llama-index-core>=0.12.28",
     "llama-index-llms-openai>=0.3.30",
     "llama-index-embeddings-openai>=0.3.1",
-    "duckdb>=0.10.3",
-    "llama-index-vector-stores-duckdb>=0.3.1",
+
+    # Database options:
     # "chromadb>=0.6.3",
     # "llama-index-vector-stores-chroma>=0.4.1",
+    # "duckdb>=0.10.3",
+    # "llama-index-vector-stores-duckdb>=0.3.1",
+    "lancedb>=0.21.2",
+    "llama-index-vector-stores-lancedb>=0.3.1",
+    # Pinned, seems 0.22.2 is not building on Python 3.13.
+    # https://github.com/quickwit-oss/tantivy-py
+    "tantivy==0.22.0",  
 ]
 
 [dependency-groups]

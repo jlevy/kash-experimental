@@ -34,8 +34,9 @@ class WsVectorIndex:
     A vector index for content in a workspace.
     """
 
-    def __init__(self, ws: FileStore):
+    def __init__(self, ws: FileStore, collection_name: str):
         self.ws: FileStore = ws
+        self.collection_name: str = collection_name
         self.setup_done: AtomicVar[bool] = AtomicVar(False)
 
         # Set these later.
@@ -47,7 +48,7 @@ class WsVectorIndex:
         self.response_synthesizer: BaseSynthesizer | None = None
         self.query_engine: RetrieverQueryEngine | None = None
 
-    def _setup(self, collection_name: str = "workspace"):
+    def _setup(self):
         """
         Idempotent (and possibly slow) initialization of the database and index.
         """
@@ -60,7 +61,7 @@ class WsVectorIndex:
 
             log.message("Setting up vector index for %s", self.ws)
 
-            self.vector_store = init_vector_store(index_dir, collection_name)
+            self.vector_store = init_vector_store(index_dir, self.collection_name)
 
             self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
 
@@ -86,7 +87,7 @@ class WsVectorIndex:
             self.query_engine = RetrieverQueryEngine(
                 retriever=self.retriever,
                 response_synthesizer=self.response_synthesizer,
-                node_postprocessors=[SimilarityPostprocessor(similarity_cutoff=0.7)],
+                node_postprocessors=[SimilarityPostprocessor(similarity_cutoff=0.5)],
             )
 
             self.setup_done.set(True)
@@ -154,5 +155,5 @@ def get_ws_vector_index(ws: FileStore, collection_name: str) -> WsVectorIndex:
     key = VectorIndexKey(ws.base_dir, collection_name)
     with vector_indexes.updates() as indexes:
         if key not in indexes:
-            indexes[key] = WsVectorIndex(ws)
+            indexes[key] = WsVectorIndex(ws, collection_name)
         return indexes[key]
