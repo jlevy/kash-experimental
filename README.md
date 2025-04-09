@@ -1,4 +1,4 @@
-# kash-research
+# kash-experimental
 
 See the main [kash](https://github.com/jlevy/kash) repo for general instructions.
 

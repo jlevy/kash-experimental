@@ -3,7 +3,7 @@ _commit: v0.2.5
 _src_path: gh:jlevy/simple-modern-uv
 package_author_email: joshua@cal.berkeley.edu
 package_author_name: Joshua Levy
-package_description: The knowledge agent shell (with research kit)
+package_description: The knowledge agent shell (with experimental kit)
 package_github_org: jlevy
 package_module: kash
-package_name: kash-research
+package_name: kash-experimental

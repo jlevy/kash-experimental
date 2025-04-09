@@ -1,12 +1,12 @@
 # ---- Project Info and Dependencies ----
 
 [project.urls]
-Repository = "https://github.com/jlevy/kash-research"
+Repository = "https://github.com/jlevy/kash-experimental"
 # Homepage = "https://..."
 
 [project]
-name = "kash-research"
-description = "The knowledge agent shell (research kit)"
+name = "kash-experimental"
+description = "The knowledge agent shell (experimental kit)"
 authors = [
     { name="Joshua Levy", email="joshua@cal.berkeley.edu" },
 ]

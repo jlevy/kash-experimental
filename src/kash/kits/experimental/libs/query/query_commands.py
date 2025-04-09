@@ -5,7 +5,7 @@ from llama_index.core.schema import NodeWithScore
 from prettyfmt import fmt_lines
 
 from kash.exec import assemble_store_path_args, kash_command
-from kash.kits.research.libs.query.vector_indexes import WsVectorIndex, get_ws_vector_index
+from kash.kits.experimental.libs.query.vector_indexes import WsVectorIndex, get_ws_vector_index
 from kash.shell.output.shell_output import PrintHooks, Wrap, cprint, print_response, print_status
 from kash.workspaces import current_ws
 

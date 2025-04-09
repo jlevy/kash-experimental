@@ -6,9 +6,9 @@ This project is set up to use [uv](https://docs.astral.sh/uv/) to manage Python 
 dependencies. First, be sure you
 [have uv installed](https://docs.astral.sh/uv/getting-started/installation/).
 
-Then [fork the jlevy/kash-research
-repo](https://github.com/jlevy/kash-research/fork) (having your own
-fork will make it easier to contribute) and
+Then [fork the jlevy/kash-experimental
+repo](https://github.com/jlevy/kash-experimental/fork) (having your own fork will make
+it easier to contribute) and
 [clone it](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository).
 
 ## Basic Developer Workflows

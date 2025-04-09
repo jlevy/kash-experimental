@@ -16,12 +16,12 @@ from typing_extensions import override
 
 from kash.config.logger import get_logger
 from kash.file_storage.file_store import FileStore
-from kash.kits.research.libs.query.index_utils import (
+from kash.kits.experimental.libs.query.index_utils import (
     drop_non_atomic,
     flatten_dict,
     tiktoken_tokenizer,
 )
-from kash.kits.research.libs.query.vector_stores import init_vector_store
+from kash.kits.experimental.libs.query.vector_stores import init_vector_store
 from kash.model import Item
 from kash.utils.common.atomic_var import AtomicVar
 from kash.utils.common.type_utils import not_none
