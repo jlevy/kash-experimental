@@ -1,0 +1,157 @@
+<style>
+  .force-graph {
+    width: 100%;
+    height: 600px;
+  }
+  .node-popover {
+    position: absolute;
+    background: hsla(193, 90%, 96%, 0.9);
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 14px;
+    font-family: var(--font-sans);
+    font-style: normal;
+    pointer-events: none;
+    max-width: 300px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+  .node-popover img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 5px;
+  }
+</style>
+
+<div id="3d-graph" class="force-graph"></div>
+<div id="node-popover" class="node-popover"></div>
+
+<script src="https://unpkg.com/3d-force-graph"></script>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three/build/three.module.js"
+    }
+  }
+</script>
+
+<script type="module">
+  import SpriteText from "https://unpkg.com/three-spritetext/dist/three-spritetext.mjs";
+  import * as THREE from 'three';
+
+  const data = {{ graph | tojson | safe }};
+  const animation_speed = 150;
+
+  const colorFromType = (type) => {
+    switch (type) {
+      case "concept":
+        return "{{ colors.concept_light }}";
+      case "note":
+        return "{{ colors.doc_light }}";
+      case "resource":
+        return "{{ colors.resource_light }}";
+      default:
+        return "{{ colors.white_light }}";
+    }
+  };
+
+  function wrapText(text, maxLineLength) {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+      if ((currentLine + word).length <= maxLineLength) {
+        currentLine += (currentLine ? ' ' : '') + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    });
+    lines.push(currentLine);
+
+    return lines.join('\n');
+  }
+
+
+  function truncate(description, maxLength = 200) {
+    if (description && description.length > maxLength) {
+      return description.slice(0, maxLength).trim() + ' …';
+    }
+    return description;
+  }
+
+  const Graph3D = ForceGraph3D()(document.getElementById("3d-graph"))
+    .graphData(data)
+    .nodeLabel(null) // Disable default node label
+    .nodeColor(node => colorFromType(node.type))
+    .linkColor("{{ colors.link_light }}")
+    .linkOpacity(0.7)
+    .linkAutoColorBy("relationship")
+    .nodeThreeObject((node) => {
+      const sprite = new SpriteText(wrapText(node.title, 40));
+      sprite.material.depthWrite = false; // make sprite background transparent
+      sprite.color = colorFromType(node.type);
+      sprite.textHeight = 8;
+      sprite.fontWeight = 'bold';
+      return sprite;
+    })
+    .onNodeHover((node, prevNode) => {
+      const popover = document.getElementById('node-popover');
+      if (node) {
+        const { title, description, thumbnail_url } = node;
+        let content = "";
+        if (thumbnail_url) {
+          content += `<img src="${thumbnail_url}" alt="${title}">`;
+        }
+        content += `<h2>${title}</h2>`;
+        if (description) {
+          content += `<p>${truncate(description)}</p>`;
+        }
+        popover.innerHTML = content;
+        popover.style.display = 'block';
+
+        // Calculate popover position
+        const nodePosition = new THREE.Vector3(node.x, node.y, node.z);
+        const screenPosition = nodePosition.project(Graph3D.camera());
+        const graphRect = Graph3D.renderer().domElement.getBoundingClientRect();
+        const x = (screenPosition.x + 1) * graphRect.width / 2 + graphRect.left + 20; // 20px offset to the right
+        let y = (-screenPosition.y + 1) * graphRect.height / 2 + graphRect.top;
+
+        // Ensure the popover doesn't extend below the bottom of the screen
+        const popoverHeight = popover.offsetHeight;
+        const maxY = window.innerHeight - popoverHeight - 20; // 20px margin from bottom
+        y = Math.min(y, maxY);
+
+        popover.style.left = `${x}px`;
+        popover.style.top = `${y}px`;
+
+        setTimeout(() => {
+          popover.style.opacity = '1';
+        }, 0);
+      } else {
+        popover.style.opacity = '0';
+        setTimeout(() => {
+          popover.style.display = 'none';
+        }, animation_speed);
+      }
+    })
+    .onNodeClick((node, event) => {
+      if (node.url) {
+        window.open(node.url, '_blank');
+      }
+    })
+    .onNodeRightClick((node, event) => {
+      event.preventDefault();
+      if (node.url) {
+        window.open(node.url, '_blank');
+      }
+    });
+
+
+
+  // Spread nodes a little wider
+  // Graph.d3Force("charge").strength(-120);
+</script>

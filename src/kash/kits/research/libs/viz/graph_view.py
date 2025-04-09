@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from dataclasses import fields
 from pathlib import Path
-from typing import TypeAlias
+from typing import Literal, TypeAlias
 
 from kash.concepts.embeddings import Embeddings, KeyVal
 from kash.concepts.text_similarity import find_related_pairs, relate_texts_by_embedding
@@ -21,12 +21,21 @@ from kash.workspaces import current_ws
 log = get_logger(__name__)
 
 
-def force_graph_generate(title: str, graph: GraphData) -> str:
+GraphStyle: TypeAlias = Literal["2d", "3d"]
+
+templates: dict[GraphStyle, str] = {
+    "2d": "force_graph_2d.html.jinja",
+    "3d": "force_graph_3d.html.jinja",
+}
+
+
+def force_graph_generate(title: str, graph: GraphData, style: GraphStyle = "2d") -> str:
     viz_templates_dir = Path(__file__).parent / "templates"
+    template_name = templates[style]
 
     content = render_web_template(
         viz_templates_dir,
-        "force_graph.html.jinja",
+        template_name,
         {"graph": graph.to_serializable(), "colors": colors.logical},
     )
     return render_web_template(
@@ -36,8 +45,8 @@ def force_graph_generate(title: str, graph: GraphData) -> str:
     )
 
 
-def generate_graph_view_html(data: GraphData) -> Path:
-    html = force_graph_generate("Knowledge Graph", data)
+def generate_graph_view_html(data: GraphData, style: GraphStyle = "2d") -> Path:
+    html = force_graph_generate("Knowledge Graph", data, style)
 
     item = Item(
         type=ItemType.export,
@@ -140,8 +149,8 @@ def assemble_workspace_graph(
     return graph_data_pruned
 
 
-def open_graph_view(graph: GraphData):
-    html_path = generate_graph_view_html(graph)
+def open_graph_view(graph: GraphData, style: GraphStyle = "2d"):
+    html_path = generate_graph_view_html(graph, style)
     view_file_native(html_path, view_mode=ViewMode.browser)
 
 

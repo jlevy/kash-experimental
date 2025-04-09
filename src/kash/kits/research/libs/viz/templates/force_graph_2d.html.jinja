@@ -24,36 +24,28 @@
   }
 </style>
 
-<div id="3d-graph" class="force-graph"></div>
+<div id="2d-graph" class="force-graph"></div>
 <div id="node-popover" class="node-popover"></div>
 
-<script src="https://unpkg.com/3d-force-graph"></script>
-
-<script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three/build/three.module.js"
-    }
-  }
-</script>
+<!--
+https://github.com/vasturiano/force-graph
+-->
+<script src="https://unpkg.com/force-graph"></script>
 
 <script type="module">
-  import SpriteText from "https://unpkg.com/three-spritetext/dist/three-spritetext.mjs";
-  import * as THREE from 'three';
-
   const data = {{ graph | tojson | safe }};
   const animation_speed = 150;
 
   const colorFromType = (type) => {
     switch (type) {
       case "concept":
-        return "{{ colors.concept_light }}";
+        return "{{ colors.concept_dark }}";
       case "note":
-        return "{{ colors.doc_light }}";
+        return "{{ colors.doc_dark }}";
       case "resource":
-        return "{{ colors.resource_light }}";
+        return "{{ colors.resource_dark }}";
       default:
-        return "{{ colors.white_light }}";
+        return "{{ colors.white_dark }}";
     }
   };
 
@@ -75,7 +67,6 @@
     return lines.join('\n');
   }
 
-
   function truncate(description, maxLength = 200) {
     if (description && description.length > maxLength) {
       return description.slice(0, maxLength).trim() + ' …';
@@ -83,20 +74,37 @@
     return description;
   }
 
-  const Graph = ForceGraph3D()(document.getElementById("3d-graph"))
+  const graphContainer = document.getElementById('2d-graph');
+  const Graph = new ForceGraph(graphContainer)
     .graphData(data)
-    .nodeLabel(null) // Disable default node label
     .nodeColor(node => colorFromType(node.type))
-    .linkColor("{{ colors.link_light }}")
-    .linkOpacity(0.7)
-    .linkAutoColorBy("relationship")
-    .nodeThreeObject((node) => {
-      const sprite = new SpriteText(wrapText(node.title, 40));
-      sprite.material.depthWrite = false; // make sprite background transparent
-      sprite.color = colorFromType(node.type);
-      sprite.textHeight = 8;
-      sprite.fontWeight = 'bold';
-      return sprite;
+    .linkColor(() => "{{ colors.link_light }}")
+    .nodeCanvasObject((node, ctx, globalScale) => {
+      const label = node.title || node.id;
+      const fontSize = 14/globalScale;
+      ctx.font = `${fontSize}px Sans-Serif`;
+      const textWidth = ctx.measureText(label).width;
+      const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.1); // some padding
+
+      // Draw background rectangle
+      // Using a semi-transparent white background like the example
+      // Alternatively, could use colorFromType(node.type) with some transparency
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
+
+      // Draw text label
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = colorFromType(node.type); // Use node type color for text
+      ctx.fillText(label, node.x, node.y);
+
+      node.__bckgDimensions = bckgDimensions; // Store for pointer area interaction
+    })
+    .nodePointerAreaPaint((node, color, ctx) => {
+      // Define the pointer area based on the background rectangle
+      ctx.fillStyle = color; // color is managed by the library for hover/click indication
+      const bckgDimensions = node.__bckgDimensions;
+      bckgDimensions && ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
     })
     .onNodeHover((node, prevNode) => {
       const popover = document.getElementById('node-popover');
@@ -113,12 +121,10 @@
         popover.innerHTML = content;
         popover.style.display = 'block';
 
-        // Calculate popover position
-        const nodePosition = new THREE.Vector3(node.x, node.y, node.z);
-        const screenPosition = nodePosition.project(Graph.camera());
-        const graphRect = Graph.renderer().domElement.getBoundingClientRect();
-        const x = (screenPosition.x + 1) * graphRect.width / 2 + graphRect.left + 20; // 20px offset to the right
-        let y = (-screenPosition.y + 1) * graphRect.height / 2 + graphRect.top;
+        // Calculate popover position relative to the node
+        const graphRect = graphContainer.getBoundingClientRect();
+        const x = node.x * Graph.zoom() + graphRect.left + 20; // 20px offset to the right
+        let y = node.y * Graph.zoom() + graphRect.top;
 
         // Ensure the popover doesn't extend below the bottom of the screen
         const popoverHeight = popover.offsetHeight;
@@ -142,15 +148,7 @@
       if (node.url) {
         window.open(node.url, '_blank');
       }
-    })
-    .onNodeRightClick((node, event) => {
-      event.preventDefault();
-      if (node.url) {
-        window.open(node.url, '_blank');
-      }
     });
-
-
 
   // Spread nodes a little wider
   // Graph.d3Force("charge").strength(-120);
