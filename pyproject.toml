@@ -37,7 +37,7 @@ dependencies = [
     "llama-index-vector-stores-lancedb>=0.3.1",
     # Pinned, seems 0.22.2 is not building on Python 3.13.
     # https://github.com/quickwit-oss/tantivy-py
-    "tantivy==0.22.0",  
+    "tantivy==0.22.0",
 ]
 
 [dependency-groups]
@@ -51,10 +51,12 @@ dev = [
 ]
 
 [tool.uv.sources]
+# For bleeding edge:
+kash-shell = { git = "https://github.com/jlevy/kash", branch = "main" }
+kash-media = { git = "https://github.com/jlevy/kash-media", branch = "main" }
 # For local development:
 # kash-media = { path = "../kash-media", editable = true }
 # kash-shell = { path = "../kash", editable = true }
-
 
 [project.scripts]
 # These override the kash-shell entry points so we have full deps for this kit.
@@ -152,14 +154,16 @@ ignore = [
 # https://docs.basedpyright.com/latest/configuration/config-files/#sample-pyprojecttoml-file
 [tool.basedpyright]
 include = ["src", "tests", "devtools"]
-reportUnusedParameter = false
-reportUnusedImport = false
 # Make ignoring easier:
 reportIgnoreCommentWithoutRule = false
 reportUnnecessaryTypeIgnoreComment = false
 # Seem generally harmless:
 reportImplicitStringConcatenation = false
 reportUnknownLambdaType = false
+# Revisit:
+reportUnusedParameter = false
+reportUnusedImport = false
+reportPrivateImportUsage = false
 # Typically noisy warnings, comment/uncomment as desired:
 reportMissingTypeStubs = false
 reportUnusedCallResult = false
