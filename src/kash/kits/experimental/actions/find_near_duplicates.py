@@ -1,10 +1,13 @@
 from chopdiff.util import lemmatized_equal
 
 from kash.concepts.embeddings import Embeddings
-from kash.concepts.text_similarity import find_related_pairs, relate_texts_by_embedding
 from kash.config.logger import get_logger
 from kash.exec import kash_action
 from kash.exec.preconditions import is_concept, is_text_doc
+from kash.kits.experimental.libs.concepts.concept_relations import (
+    find_related_pairs,
+    relate_texts_by_embedding,
+)
 from kash.model import TWO_OR_MORE_ARGS, ActionInput, ActionResult, PathOp, PathOpType, StorePath
 from kash.shell.output.shell_output import PrintHooks, cprint
 from kash.text_handling.markdown_util import as_bullet_points

@@ -3,10 +3,14 @@ from dataclasses import fields
 from pathlib import Path
 from typing import Literal, TypeAlias
 
-from kash.concepts.embeddings import Embeddings, KeyVal
-from kash.concepts.text_similarity import find_related_pairs, relate_texts_by_embedding
+from kash.concepts.embeddings import DEFAULT_EMBEDDING_MODEL, Embeddings, KeyVal
 from kash.config import colors
 from kash.config.logger import get_logger
+from kash.kits.experimental.libs.concepts.concept_relations import (
+    find_related_pairs,
+    relate_texts_by_embedding,
+)
+from kash.llm_utils.llms import EmbeddingModel
 from kash.model import Format
 from kash.model.graph_model import GraphData, Link, Node
 from kash.model.items_model import Item, ItemRelations, ItemType
@@ -96,10 +100,14 @@ def item_as_node_links(item: Item) -> tuple[Node, list[Link]]:
     return node, links
 
 
-def related_concepts_as_links(concept_texts: list[KeyVal]) -> list[Link]:
-    embeddings = Embeddings.embed(concept_texts)
+def related_concepts_as_links(
+    concept_texts: list[KeyVal],
+    model: EmbeddingModel = DEFAULT_EMBEDDING_MODEL,
+    threshold: float = 0.5,
+) -> list[Link]:
+    embeddings = Embeddings.embed(concept_texts, model=model)
     relatedness_matrix = relate_texts_by_embedding(embeddings)
-    related_pairs = find_related_pairs(relatedness_matrix, threshold=0.5)
+    related_pairs = find_related_pairs(relatedness_matrix, threshold=threshold)
 
     log.message("Found %d related concept pairs to add to graph.", len(related_pairs))
 
