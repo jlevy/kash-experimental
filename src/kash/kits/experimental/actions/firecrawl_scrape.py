@@ -27,11 +27,11 @@ def firecrawl_scrape(item: Item) -> Item:
 
     log.save_object("scrape_result", None, scrape_result, level=LogLevel.message)
 
-    if "markdown" not in scrape_result:
+    if not scrape_result.markdown:
         raise ApiResultError("No markdown found in scrape result")
 
     return item.derived_copy(
         type=ItemType.doc,
         format=Format.markdown,
-        body=scrape_result["markdown"],
+        body=scrape_result.markdown,
     )

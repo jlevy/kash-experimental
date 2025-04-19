@@ -12,6 +12,7 @@ from llama_index.core.response_synthesizers import BaseSynthesizer
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.storage import StorageContext
 from llama_index.core.vector_stores.types import BasePydanticVectorStore
+from strif import AtomicVar
 from typing_extensions import override
 
 from kash.config.logger import get_logger
@@ -23,7 +24,6 @@ from kash.kits.experimental.libs.query.index_utils import (
 )
 from kash.kits.experimental.libs.query.vector_stores import init_vector_store
 from kash.model import Item
-from kash.utils.common.atomic_var import AtomicVar
 from kash.utils.common.type_utils import not_none
 
 log = get_logger(__name__)

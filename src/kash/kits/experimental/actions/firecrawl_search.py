@@ -33,15 +33,15 @@ def firecrawl_search(input: ActionInput, query: str = "") -> ActionResult:
 
     log.save_object("search_result", None, search_result, level=LogLevel.message)
 
-    if not search_result.get("success"):
+    if not search_result.success:
         raise ApiResultError("Search was not successful")
 
-    if not search_result.get("data"):
+    if not search_result.data:
         raise ApiResultError("No results found in search response")
 
     # Build a Markdown enumerated list of results.
     markdown_parts = []
-    for i, result in enumerate(search_result["data"]):
+    for i, result in enumerate(search_result.data):
         metadata = result.get("metadata", {})
         url = result["url"]
         title = metadata.get("title", None)
