@@ -3,7 +3,7 @@ from kash.config.logger import get_logger
 from kash.exec import kash_action, llm_transform_item
 from kash.llm_utils import Message, MessageTemplate
 from kash.model import Item, LLMOptions, TitleTemplate
-from kash.text_handling.markdown_util import as_bullet_points
+from kash.text_handling.markdown_utils import as_bullet_points
 from kash.utils.common.type_utils import not_none
 from kash.utils.errors import InvalidOutput
 

@@ -22,8 +22,8 @@ dependencies = [
     "frontmatter-format>=0.2.1",
     "prettyfmt>=0.3.0",
     # Search tools:
-    "exa-py>=1.11.0",
-    "firecrawl-py>=1.15.0",
+    "exa-py>=1.12.0",
+    "firecrawl-py>=2.1.0",
     "llama-index-core>=0.12.28",
     "llama-index-llms-openai>=0.3.30",
     "llama-index-embeddings-openai>=0.3.1",
@@ -36,9 +36,7 @@ dependencies = [
     "llama-index-vector-stores-lancedb>=0.3.1",
     # Pinned, seems 0.22.2 is not building on Python 3.13.
     # https://github.com/quickwit-oss/tantivy-py
-    "tantivy==0.22.0",
-#     "nlpia2-wikipedia>=1.5.18",
-#     "tenacity>=9.1.2",
+    "tantivy==0.22.0"
 ]
 
 [dependency-groups]
@@ -60,6 +58,9 @@ kash-media = { git = "https://github.com/jlevy/kash-media", branch = "main" }
 
 [project.scripts]
 # These override the kash-shell entry points so we have full deps for this kit.
+# kash-experimental should match the package name so it's easy to run from uvx.
+# kash makes it easy to run as usual with kash.
+kash-experimental = "kash.shell.shell_main:main"
 kash = "kash.shell.shell_main:main"
 kash_mcp = "kash.mcp.mcp_cli:main"
 
@@ -164,6 +165,7 @@ reportUnknownLambdaType = false
 reportUnusedParameter = false
 reportUnusedImport = false
 reportPrivateImportUsage = false
+reportPrivateUsage = false
 # Typically noisy warnings, comment/uncomment as desired:
 reportMissingTypeStubs = false
 reportUnusedCallResult = false
