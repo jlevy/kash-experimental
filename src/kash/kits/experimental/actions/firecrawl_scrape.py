@@ -3,7 +3,7 @@ from firecrawl import FirecrawlApp
 from kash.config.logger import get_logger
 from kash.config.settings import LogLevel
 from kash.exec import kash_action
-from kash.exec.preconditions import is_url_item
+from kash.exec.preconditions import is_url_resource
 from kash.model import Format, Item, ItemType
 from kash.utils.errors import ApiResultError, InvalidInput
 
@@ -11,7 +11,7 @@ log = get_logger(__name__)
 
 
 @kash_action(
-    precondition=is_url_item,
+    precondition=is_url_resource,
     mcp_tool=True,
 )
 def firecrawl_scrape(item: Item) -> Item:

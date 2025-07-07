@@ -17,8 +17,7 @@ dynamic = ["version"]
 
 dependencies = [
     # Main kash and media deps:
-    "kash-media>=0.3.9",
-    "kash-shell>=0.3.9",
+    "kash-media>=0.3.13",
     "frontmatter-format>=0.2.1",
     "prettyfmt>=0.3.0",
     # Search tools:
@@ -36,7 +35,9 @@ dependencies = [
     "llama-index-vector-stores-lancedb>=0.3.1",
     # Pinned, seems 0.22.2 is not building on Python 3.13.
     # https://github.com/quickwit-oss/tantivy-py
-    "tantivy==0.22.0"
+    "tantivy>=0.22.0",
+    # Dtale is good for data exploration.
+    "dtale>=3.17.0",
 ]
 
 [dependency-groups]
@@ -51,7 +52,7 @@ dev = [
 
 [tool.uv.sources]
 # For bleeding edge:
-kash-media = { git = "https://github.com/jlevy/kash-media", branch = "main" }
+# kash-media = { git = "https://github.com/jlevy/kash-media", branch = "main" }
 # For local development:
 # kash-media = { path = "../kash-media", editable = true }
 # kash-shell = { path = "../kash", editable = true }

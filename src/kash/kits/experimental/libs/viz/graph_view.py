@@ -3,10 +3,10 @@ from dataclasses import fields
 from pathlib import Path
 from typing import Literal, TypeAlias
 
-from kash.concepts.embeddings import DEFAULT_EMBEDDING_MODEL, Embeddings, KeyVal
 from kash.config import colors
 from kash.config.logger import get_logger
-from kash.kits.experimental.libs.concepts.concept_relations import (
+from kash.embeddings.embeddings import DEFAULT_EMBEDDING_MODEL, Embeddings, KeyVal
+from kash.kits.docs.concepts.concept_relations import (
     find_related_pairs,
     relate_texts_by_embedding,
 )
@@ -18,8 +18,7 @@ from kash.shell.utils.native_utils import ViewMode, view_file_native
 from kash.utils.common.format_utils import fmt_loc
 from kash.utils.common.type_utils import not_none
 from kash.utils.errors import InvalidInput
-from kash.web_gen import base_templates_dir
-from kash.web_gen.template_render import render_web_template
+from kash.web_gen.template_render import additional_template_dirs, render_web_template
 from kash.workspaces import current_ws
 
 log = get_logger(__name__)
@@ -37,16 +36,15 @@ def force_graph_generate(title: str, graph: GraphData, style: GraphStyle = "2d")
     viz_templates_dir = Path(__file__).parent / "templates"
     template_name = templates[style]
 
-    content = render_web_template(
-        viz_templates_dir,
-        template_name,
-        {"graph": graph.to_serializable(), "colors": colors.logical},
-    )
-    return render_web_template(
-        base_templates_dir,
-        "base_webpage.html.jinja",
-        {"title": title, "content": content},
-    )
+    with additional_template_dirs(viz_templates_dir):
+        content = render_web_template(
+            template_name,
+            {"graph": graph.to_serializable(), "colors": colors.logical},
+        )
+        return render_web_template(
+            "base_webpage.html.jinja",
+            {"title": title, "content": content},
+        )
 
 
 def generate_graph_view_html(data: GraphData, style: GraphStyle = "2d") -> Path:
@@ -74,8 +72,8 @@ def item_as_node_links(item: Item) -> tuple[Node, list[Link]]:
     node = Node(
         id=item.store_path,
         type=item.type.name,
-        title=item.abbrev_title(),
-        description=item.abbrev_description(),
+        title=item.pick_title(),
+        description=item.description,
         body=None,  # Skip for now, might add if we find it useful.
         url=str(item.url) if item.url else None,
         thumbnail_url=item.thumbnail_url,
