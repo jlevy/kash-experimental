@@ -6,7 +6,7 @@ from kash.model import ItemType
 
 
 @kash_command
-def graph_view(
+def workspace_graph_view(
     docs_only: bool = False,
     concepts_only: bool = False,
     resources_only: bool = False,
@@ -19,7 +19,8 @@ def graph_view(
     :param resources_only: Show only resources.
     :param style: The style of the graph ("2d" or "3d").
     """
-    from kash.kits.experimental.libs.viz.graph_view import assemble_workspace_graph, open_graph_view
+    from kash.kits.experimental.libs.viz.graph_view import open_graph_view
+    from kash.kits.experimental.libs.viz.workspace_graph import assemble_workspace_graph
 
     if docs_only:
         item_filter = lambda item: item.type == ItemType.doc
