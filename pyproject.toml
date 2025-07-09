@@ -18,6 +18,7 @@ dynamic = ["version"]
 dependencies = [
     # Main kash and media deps:
     "kash-media>=0.3.13",
+    "kash-shell>=0.3.25",
     "frontmatter-format>=0.2.1",
     "prettyfmt>=0.3.0",
     # Search tools:
@@ -53,6 +54,8 @@ dev = [
 [tool.uv.sources]
 # For bleeding edge:
 # kash-media = { git = "https://github.com/jlevy/kash-media", branch = "main" }
+# kash-docs = { git = "https://github.com/jlevy/kash-docs", branch = "main" }
+# kash-shell = { git = "https://github.com/jlevy/kash-shell", branch = "main" }
 # For local development:
 # kash-media = { path = "../kash-media", editable = true }
 # kash-shell = { path = "../kash", editable = true }
