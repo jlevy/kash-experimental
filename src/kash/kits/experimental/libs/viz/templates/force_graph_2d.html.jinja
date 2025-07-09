@@ -36,16 +36,21 @@ https://github.com/vasturiano/force-graph
   const data = {{ graph | tojson | safe }};
   const animation_speed = 150;
 
+  // Helper function to get CSS variable value
+  const getCSSVar = (varName) => {
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  };
+
   const colorFromType = (type) => {
     switch (type) {
       case "concept":
-        return "{{ colors.concept_dark }}";
-      case "note":
-        return "{{ colors.doc_dark }}";
+        return getCSSVar('--color-concept-dark');
+      case "doc":
+        return getCSSVar('--color-doc-dark');
       case "resource":
-        return "{{ colors.resource_dark }}";
+        return getCSSVar('--color-resource-dark');
       default:
-        return "{{ colors.white_dark }}";
+        return getCSSVar('--color-white-dark');
     }
   };
 
@@ -67,84 +72,114 @@ https://github.com/vasturiano/force-graph
     return lines.join('\n');
   }
 
-  function truncate(description, maxLength = 200) {
+  function truncate(description, maxLength = 1000) {
     if (description && description.length > maxLength) {
       return description.slice(0, maxLength).trim() + ' …';
     }
     return description;
   }
 
+  // Check if nodes have meaningful labels
+  const hasLabels = data.nodes.some(node => {
+    const label = node.title;
+    return label && label.trim().length > 0;
+  });
+
+  // Track mouse position for tooltip positioning
+  let mouseX = 0;
+  let mouseY = 0;
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
   const graphContainer = document.getElementById('2d-graph');
   const Graph = new ForceGraph(graphContainer)
     .graphData(data)
     .nodeColor(node => colorFromType(node.type))
-    .linkColor(() => "{{ colors.link_light }}")
-    .nodeCanvasObject((node, ctx, globalScale) => {
-      const label = node.title || node.id;
-      const fontSize = 14/globalScale;
-      ctx.font = `${fontSize}px Sans-Serif`;
-      const textWidth = ctx.measureText(label).width;
-      const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.1); // some padding
+    .linkColor(() => getCSSVar('--color-link-light'));
 
-      // Draw background rectangle
-      // Using a semi-transparent white background like the example
-      // Alternatively, could use colorFromType(node.type) with some transparency
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
+  // Use circular nodes if no labels, otherwise use custom canvas objects
+  if (!hasLabels) {
+    Graph.nodeVal(8); // Set node size for circular nodes
+  } else {
+    Graph
+      .nodeCanvasObject((node, ctx, globalScale) => {
+        const label = node.title || node.id;
+        const fontSize = 14/globalScale;
+        ctx.font = `${fontSize}px Sans-Serif`;
+        const textWidth = ctx.measureText(label).width;
+        const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.1); // some padding
 
-      // Draw text label
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = colorFromType(node.type); // Use node type color for text
-      ctx.fillText(label, node.x, node.y);
+        // Draw background rectangle
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
 
-      node.__bckgDimensions = bckgDimensions; // Store for pointer area interaction
-    })
-    .nodePointerAreaPaint((node, color, ctx) => {
-      // Define the pointer area based on the background rectangle
-      ctx.fillStyle = color; // color is managed by the library for hover/click indication
-      const bckgDimensions = node.__bckgDimensions;
-      bckgDimensions && ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
-    })
-    .onNodeHover((node, prevNode) => {
-      const popover = document.getElementById('node-popover');
-      if (node) {
-        const { title, description, thumbnail_url } = node;
-        let content = "";
-        if (thumbnail_url) {
-          content += `<img src="${thumbnail_url}" alt="${title}">`;
-        }
-        content += `<h2>${title}</h2>`;
-        if (description) {
-          content += `<p>${truncate(description)}</p>`;
-        }
-        popover.innerHTML = content;
-        popover.style.display = 'block';
+        // Draw text label
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = colorFromType(node.type);
+        ctx.fillText(label, node.x, node.y);
 
-        // Calculate popover position relative to the node
-        const graphRect = graphContainer.getBoundingClientRect();
-        const x = node.x * Graph.zoom() + graphRect.left + 20; // 20px offset to the right
-        let y = node.y * Graph.zoom() + graphRect.top;
+        node.__bckgDimensions = bckgDimensions; // Store for pointer area interaction
+      })
+      .nodePointerAreaPaint((node, color, ctx) => {
+        // Define the pointer area based on the background rectangle
+        ctx.fillStyle = color;
+        const bckgDimensions = node.__bckgDimensions;
+        bckgDimensions && ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
+      });
+  }
 
-        // Ensure the popover doesn't extend below the bottom of the screen
-        const popoverHeight = popover.offsetHeight;
-        const maxY = window.innerHeight - popoverHeight - 20; // 20px margin from bottom
-        y = Math.min(y, maxY);
+  Graph.onNodeHover((node, prevNode) => {
+    const popover = document.getElementById('node-popover');
+    if (node) {
+      const { title, description, thumbnail_url } = node;
+      let content = "";
+      if (thumbnail_url) {
+        content += `<img src="${thumbnail_url}" alt="${title}">`;
+      }
+      content += `<h2>${title}</h2>`;
+      if (description) {
+        content += `<p>${truncate(description)}</p>`;
+      }
+      popover.innerHTML = content;
+      popover.style.display = 'block';
 
-        popover.style.left = `${x}px`;
-        popover.style.top = `${y}px`;
+      // Position tooltip near mouse cursor
+      const x = mouseX + 20; // 20px offset to the right of mouse
+      let y = mouseY - 10; // slight offset up from mouse
 
-        setTimeout(() => {
-          popover.style.opacity = '1';
-        }, 0);
-      } else {
-        popover.style.opacity = '0';
-        setTimeout(() => {
-          popover.style.display = 'none';
-        }, animation_speed);
+      // Ensure the popover doesn't extend below the bottom of the screen
+      const popoverHeight = popover.offsetHeight;
+      const maxY = window.innerHeight - popoverHeight - 20; // 20px margin from bottom
+      y = Math.min(y, maxY);
+
+      // Ensure the popover doesn't extend past the right edge
+      const popoverWidth = popover.offsetWidth;
+      const maxX = window.innerWidth - popoverWidth - 20; // 20px margin from right
+      const finalX = Math.min(x, maxX);
+
+      popover.style.left = `${finalX}px`;
+      popover.style.top = `${y}px`;
+
+      setTimeout(() => {
+        popover.style.opacity = '1';
+      }, 0);
+    } else {
+      popover.style.opacity = '0';
+      setTimeout(() => {
+        popover.style.display = 'none';
+      }, animation_speed);
+    }
+  })
+    .onNodeClick((node, event) => {
+      if (node.url) {
+        window.open(node.url, '_blank');
       }
     })
-    .onNodeClick((node, event) => {
+    .onNodeRightClick((node, event) => {
+      event.preventDefault();
       if (node.url) {
         window.open(node.url, '_blank');
       }

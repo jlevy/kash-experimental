@@ -31,7 +31,7 @@ log = get_logger(__name__)
         Param("max_links", "Maximum number of links per node", type=int),
     ),
 )
-def show_embeddings(
+def show_embeddings_graph_view(
     item: Item,
     style: str = "2d",
     similarity_threshold: float = 0.7,

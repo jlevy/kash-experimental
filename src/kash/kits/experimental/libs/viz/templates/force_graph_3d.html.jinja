@@ -44,16 +44,21 @@
   const data = {{ graph | tojson | safe }};
   const animation_speed = 150;
 
+  // Helper function to get CSS variable value
+  const getCSSVar = (varName) => {
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  };
+
   const colorFromType = (type) => {
     switch (type) {
       case "concept":
-        return "{{ colors.concept_light }}";
-      case "note":
-        return "{{ colors.doc_light }}";
+        return getCSSVar('--color-concept-dark');
+      case "doc":
+        return getCSSVar('--color-doc-dark');
       case "resource":
-        return "{{ colors.resource_light }}";
+        return getCSSVar('--color-resource-dark');
       default:
-        return "{{ colors.white_light }}";
+        return getCSSVar('--color-white-dark');
     }
   };
 
@@ -76,29 +81,50 @@
   }
 
 
-  function truncate(description, maxLength = 200) {
+  function truncate(description, maxLength = 1000) {
     if (description && description.length > maxLength) {
       return description.slice(0, maxLength).trim() + ' …';
     }
     return description;
   }
 
+  // Check if nodes have meaningful labels
+  const hasLabels = data.nodes.some(node => {
+    const label = node.title;
+    return label && label.trim().length > 0;
+  });
+
+  // Track mouse position for tooltip positioning
+  let mouseX = 0;
+  let mouseY = 0;
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
   const Graph3D = ForceGraph3D()(document.getElementById("3d-graph"))
     .graphData(data)
     .nodeLabel(null) // Disable default node label
     .nodeColor(node => colorFromType(node.type))
-    .linkColor("{{ colors.link_light }}")
+    .linkColor(() => getCSSVar('--color-link-light'))
     .linkOpacity(0.7)
-    .linkAutoColorBy("relationship")
-    .nodeThreeObject((node) => {
+    .linkAutoColorBy("relationship");
+
+  // Use simple spheres if no labels, otherwise use sprite text
+  if (!hasLabels) {
+    Graph3D.nodeVal(8); // Set node size for spherical nodes
+  } else {
+    Graph3D.nodeThreeObject((node) => {
       const sprite = new SpriteText(wrapText(node.title, 40));
       sprite.material.depthWrite = false; // make sprite background transparent
       sprite.color = colorFromType(node.type);
       sprite.textHeight = 8;
       sprite.fontWeight = 'bold';
       return sprite;
-    })
-    .onNodeHover((node, prevNode) => {
+    });
+  }
+
+  Graph3D.onNodeHover((node, prevNode) => {
       const popover = document.getElementById('node-popover');
       if (node) {
         const { title, description, thumbnail_url } = node;
@@ -113,19 +139,21 @@
         popover.innerHTML = content;
         popover.style.display = 'block';
 
-        // Calculate popover position
-        const nodePosition = new THREE.Vector3(node.x, node.y, node.z);
-        const screenPosition = nodePosition.project(Graph3D.camera());
-        const graphRect = Graph3D.renderer().domElement.getBoundingClientRect();
-        const x = (screenPosition.x + 1) * graphRect.width / 2 + graphRect.left + 20; // 20px offset to the right
-        let y = (-screenPosition.y + 1) * graphRect.height / 2 + graphRect.top;
+        // Position tooltip near mouse cursor
+        const x = mouseX + 20; // 20px offset to the right of mouse
+        let y = mouseY - 10; // slight offset up from mouse
 
         // Ensure the popover doesn't extend below the bottom of the screen
         const popoverHeight = popover.offsetHeight;
         const maxY = window.innerHeight - popoverHeight - 20; // 20px margin from bottom
         y = Math.min(y, maxY);
 
-        popover.style.left = `${x}px`;
+        // Ensure the popover doesn't extend past the right edge
+        const popoverWidth = popover.offsetWidth;
+        const maxX = window.innerWidth - popoverWidth - 20; // 20px margin from right
+        const finalX = Math.min(x, maxX);
+
+        popover.style.left = `${finalX}px`;
         popover.style.top = `${y}px`;
 
         setTimeout(() => {
@@ -149,8 +177,6 @@
         window.open(node.url, '_blank');
       }
     });
-
-
 
   // Spread nodes a little wider
   // Graph.d3Force("charge").strength(-120);
