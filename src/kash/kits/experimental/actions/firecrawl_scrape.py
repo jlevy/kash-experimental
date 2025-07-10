@@ -23,15 +23,11 @@ def firecrawl_scrape(item: Item) -> Item:
 
     firecrawl = FirecrawlApp()
 
-    scrape_result = firecrawl.scrape_url(item.url, params={"formats": ["markdown"]})
+    scrape_result = firecrawl.scrape_url(item.url, formats=["markdown"])
 
-    log.save_object("scrape_result", None, scrape_result, level=LogLevel.message)
+    log.save_object("scrape_result", None, scrape_result, level=LogLevel.info)
 
     if not scrape_result.markdown:
         raise ApiResultError("No markdown found in scrape result")
 
-    return item.derived_copy(
-        type=ItemType.doc,
-        format=Format.markdown,
-        body=scrape_result.markdown,
-    )
+    return item.derived_copy(type=ItemType.doc, format=Format.markdown, body=scrape_result.markdown)
