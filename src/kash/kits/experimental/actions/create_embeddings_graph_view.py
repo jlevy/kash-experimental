@@ -31,14 +31,14 @@ log = get_logger(__name__)
         Param("max_links", "Maximum number of links per node", type=int),
     ),
 )
-def show_embeddings_graph_view(
+def create_embeddings_graph_view(
     item: Item,
     style: str = "2d",
     similarity_threshold: float = 0.7,
     max_links: int = 5,
 ) -> Item:
     """
-    Visualize vector embeddings from an NPZ file as an interactive graph.
+    Create a force graph view from vector embeddings from an NPZ file.
 
     :param item: The NPZ embeddings file item to visualize
     :param style: Graph visualization style ('2d' or '3d')
@@ -80,11 +80,6 @@ def show_embeddings_graph_view(
     # Generate and open the graph view
     graph_style = cast(GraphStyle, style)
     html_path = generate_graph_view_html(graph_data, style=graph_style)
-
-    # Open the generated HTML file
-    from kash.shell.utils.native_utils import ViewMode, view_file_native
-
-    view_file_native(html_path, view_mode=ViewMode.browser)
 
     # Return the generated HTML item
     return Item(
